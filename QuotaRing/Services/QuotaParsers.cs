@@ -10,8 +10,8 @@ public static class QuotaParsers
     [
         ("gemini-5h", "5h", "Gemini"),
         ("gemini-weekly", "7d", "Gemini"),
-        ("3p-5h", "5h", "Claude/GPT"),
-        ("3p-weekly", "7d", "Claude/GPT"),
+        ("3p-5h", "5h", "C/GPT"),
+        ("3p-weekly", "7d", "C/GPT"),
     ];
 
     public static IReadOnlyList<QuotaRingItem> ParseAntigravityJson(string json)

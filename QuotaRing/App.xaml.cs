@@ -13,6 +13,16 @@ public partial class App : Application
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         base.OnStartup(e);
+
+        if (e.Args.Length >= 2 && string.Equals(e.Args[0], "--screenshot", StringComparison.OrdinalIgnoreCase))
+        {
+            var win = new MainWindow(screenshotOutputDir: e.Args[1]);
+            win.Show();
+            return;
+        }
+
+        var main = new MainWindow();
+        main.Show();
     }
 
     private static void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

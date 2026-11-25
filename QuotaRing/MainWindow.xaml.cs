@@ -1,10 +1,12 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using QuotaRing.Controls;
@@ -30,13 +32,15 @@ public partial class MainWindow : Window
     private readonly Icon _trayIconHandle;
 
     private readonly Dictionary<string, ProviderSnapshot> _snapshots = new(StringComparer.Ordinal);
+    private readonly string? _screenshotOutputDir;
     private CancellationTokenSource? _refreshCts;
     private bool _isRefreshing;
 
-    public MainWindow()
+    public MainWindow(string? screenshotOutputDir = null)
     {
         InitializeComponent();
 
+        _screenshotOutputDir = screenshotOutputDir;
         _settings = SettingsStore.Load();
         Topmost = _settings.Topmost;
         RestorePosition();
@@ -50,7 +54,7 @@ public partial class MainWindow : Window
         {
             Icon = _trayIconHandle,
             Text = "QuotaRing - AI 剩余额度",
-            Visible = true,
+            Visible = string.IsNullOrEmpty(_screenshotOutputDir),
             ContextMenuStrip = BuildTrayMenu()
         };
         _trayIcon.MouseClick += (_, e) =>
@@ -66,14 +70,60 @@ public partial class MainWindow : Window
 
         _codexClaudeTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(3) };
         _codexClaudeTimer.Tick += async (_, _) => await RefreshProvidersAsync(includeAntigravity: false);
-        _codexClaudeTimer.Start();
 
         _antigravityTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(5) };
         _antigravityTimer.Tick += async (_, _) => await RefreshProvidersAsync(includeAntigravity: true);
-        _antigravityTimer.Start();
 
-        Loaded += async (_, _) => await RefreshProvidersAsync(includeAntigravity: true);
-        LocationChanged += (_, _) => SavePosition();
+        if (string.IsNullOrEmpty(_screenshotOutputDir))
+        {
+            _codexClaudeTimer.Start();
+            _antigravityTimer.Start();
+            Loaded += async (_, _) => await RefreshProvidersAsync(includeAntigravity: true);
+            LocationChanged += (_, _) => SavePosition();
+        }
+        else
+        {
+            Loaded += async (_, _) => await CaptureScreenshotsAndExitAsync(_screenshotOutputDir);
+        }
+    }
+
+    private async Task CaptureScreenshotsAndExitAsync(string outputDir)
+    {
+        await RefreshProvidersAsync(includeAntigravity: true);
+        Directory.CreateDirectory(outputDir);
+
+        var originalDark = _settings.DarkTheme;
+
+        _settings.DarkTheme = true;
+        ApplyTheme();
+        RenderAll();
+        await SaveVisualPngAsync(System.IO.Path.Combine(outputDir, "screenshot-dark.png"));
+
+        _settings.DarkTheme = false;
+        ApplyTheme();
+        RenderAll();
+        await SaveVisualPngAsync(System.IO.Path.Combine(outputDir, "screenshot-light.png"));
+
+        _settings.DarkTheme = originalDark;
+        ExitApp();
+    }
+
+    private async Task SaveVisualPngAsync(string filePath)
+    {
+        UpdateLayout();
+        await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render);
+
+        const double dpi = 192.0;
+        var scale = dpi / 96.0;
+        var width = (int)Math.Ceiling(ActualWidth * scale);
+        var height = (int)Math.Ceiling(ActualHeight * scale);
+        var rtb = new RenderTargetBitmap(width, height, dpi, dpi, PixelFormats.Pbgra32);
+        rtb.Render(this);
+
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(rtb));
+        await using var fs = File.Create(filePath);
+        encoder.Save(fs);
     }
 
     private static ProviderSnapshot LoadingSnapshot(string id, string name, string accent) =>

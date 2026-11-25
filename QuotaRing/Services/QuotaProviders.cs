@@ -236,7 +236,7 @@ public sealed class QuotaProviders : IDisposable
                 var sub = subEl.GetString()?.Trim();
                 if (!string.IsNullOrEmpty(sub))
                 {
-                    planLabel = sub;
+                    planLabel = System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(sub.ToLowerInvariant());
                 }
             }
 

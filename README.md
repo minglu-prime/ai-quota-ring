@@ -2,6 +2,13 @@
 
 A lightweight native Windows 11 desktop floating widget built with .NET 9 WPF that displays real-time remaining usage quotas for **Antigravity**, **OpenAI Codex**, and **Claude Code** as circular ring gauges.
 
+## Screenshots
+
+<p align="center">
+  <img src="./docs/screenshot-dark.png" alt="QuotaRing Dark Theme" width="320" />
+  <img src="./docs/screenshot-light.png" alt="QuotaRing Light Theme" width="320" />
+</p>
+
 ## Features
 
 - **Circular Remaining-Quota Rings**: Colored arc shows remaining quota, gray track shows used quota, with remaining percentage centered and reset countdown below.

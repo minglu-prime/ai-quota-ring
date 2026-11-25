@@ -1,0 +1,10 @@
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.log
+stdout.txt
+stderr.txt
+启动QuotaRing.vbs
+登录Claude.bat

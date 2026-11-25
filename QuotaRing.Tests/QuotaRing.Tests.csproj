@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\QuotaRing\Models\QuotaModels.cs" Link="QuotaModels.cs" />
+    <Compile Include="..\QuotaRing\Services\QuotaParsers.cs" Link="QuotaParsers.cs" />
+  </ItemGroup>
+</Project>
